@@ -19,6 +19,6 @@ public class Link {
     @GeneratedValue
     private final Long id;
     private final String originalUrl;
-    private final String hash;
+    private final String shortcut;
 
 }

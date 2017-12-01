@@ -1,9 +1,11 @@
 package pl.edu.agh.iosr.linkshortenerservice.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.text.RandomStringGenerator;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.edu.agh.iosr.linkshortenerservice.messaging.MessageSender;
 import pl.edu.agh.iosr.linkshortenerservice.model.Link;
 import pl.edu.agh.iosr.linkshortenerservice.repository.LinkRepository;
 
@@ -12,20 +14,26 @@ import pl.edu.agh.iosr.linkshortenerservice.repository.LinkRepository;
 public class LinkController {
 
     private final LinkRepository repository;
+    private final RandomStringGenerator randomStringGenerator;
+    private final MessageSender sender;
 
-    @GetMapping("/{hash}")
-    public ResponseEntity<String> redirectByHash(@PathVariable String hash) {
-        Link link = repository.findOneByHash(hash).orElseThrow(() -> new RuntimeException("Could not find link"));
+    @GetMapping("/{shortcut}")
+    public ResponseEntity<String> redirectByShortcut(@PathVariable String shortcut) {
+        Link link = repository.findOneByShortcut(shortcut).orElseThrow(() -> new RuntimeException("Could not find link"));
 
         return new ResponseEntity<>(link.getOriginalUrl(), HttpStatus.TEMPORARY_REDIRECT);
     }
 
-    @PostMapping("/{hash}")
-    public ResponseEntity<String> addNewPairing(@PathVariable String hash, @RequestBody String originalUrl) {
-        Link link = new Link(null, originalUrl, hash);
+    @PostMapping
+    public ResponseEntity<String> addNewShortcut(@RequestBody String originalUrl) {
+        String shortcut = randomStringGenerator.generate(7);
+
+        Link link = new Link(null, originalUrl, shortcut);
 
         repository.save(link);
 
-        return new ResponseEntity<>(link.getHash(), HttpStatus.CREATED);
+        sender.sendCacheNotification(link);
+
+        return new ResponseEntity<>(shortcut, HttpStatus.CREATED);
     }
 }

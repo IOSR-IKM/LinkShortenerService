@@ -6,5 +6,5 @@ import pl.edu.agh.iosr.linkshortenerservice.model.Link;
 import java.util.Optional;
 
 public interface LinkRepository extends JpaRepository<Link, Long> {
-    Optional<Link> findOneByHash(String hash);
+    Optional<Link> findOneByShortcut(String shortcut);
 }
