@@ -9,6 +9,9 @@ import pl.edu.agh.iosr.linkshortenerservice.messaging.MessageSender;
 import pl.edu.agh.iosr.linkshortenerservice.model.Link;
 import pl.edu.agh.iosr.linkshortenerservice.repository.LinkRepository;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 @RestController
 @RequiredArgsConstructor
 public class LinkController {
@@ -25,7 +28,7 @@ public class LinkController {
     }
 
     @PostMapping
-    public ResponseEntity<String> addNewShortcut(@RequestBody String originalUrl) {
+    public ResponseEntity<String> addNewShortcut(@RequestBody String originalUrl, @RequestParam boolean isPersistent) {
         String shortcut = randomStringGenerator.generate(7);
 
         Link link = new Link(null, originalUrl, shortcut);
@@ -34,6 +37,20 @@ public class LinkController {
 
         sender.sendCacheNotification(link);
 
+        if (!isPersistent) {
+            scheduleRemovalTask(link);
+        }
+
         return new ResponseEntity<>(shortcut, HttpStatus.CREATED);
+    }
+
+    private void scheduleRemovalTask(Link link) {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                repository.delete(link);
+            }
+        }, 10 * 60 * 1000);
     }
 }

@@ -48,7 +48,7 @@ public class LinkControllerTest {
         ArgumentCaptor<Link> captor = ArgumentCaptor.forClass(Link.class);
 
         // WHEN
-        ResponseEntity<String> response = controller.addNewShortcut(ORIGINAL_URL);
+        ResponseEntity<String> response = controller.addNewShortcut(ORIGINAL_URL, true);
 
         // THEN
         verify(repository).save(captor.capture());
