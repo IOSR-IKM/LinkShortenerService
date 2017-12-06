@@ -1,24 +1,23 @@
 package pl.edu.agh.iosr.linkshortenerservice.model;
 
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 @Entity
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 @EqualsAndHashCode(exclude = "id")
 public class Link {
 
     @Id
     @GeneratedValue
-    private final Long id;
-    private final String originalUrl;
-    private final String shortcut;
+    private Long id;
+    private String originalUrl;
+    private String shortcut;
 
 }
