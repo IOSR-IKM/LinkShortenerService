@@ -6,6 +6,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import pl.edu.agh.iosr.linkshortenerservice.model.Link;
 
@@ -16,8 +17,9 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 public class MessageSender {
     private static final Logger logger = LoggerFactory.getLogger(MessageSender.class);
-    private static final String QUEUE_NAME = "cache_notify";
     private final ConnectionFactory connectionFactory;
+    @Value("${queue.name}")
+    private String queueName = "cache_notify";
 
     public void sendCacheNotification(Link link) {
         Connection connection = null;
@@ -25,8 +27,8 @@ public class MessageSender {
         try {
             connection = connectionFactory.newConnection();
             channel = connection.createChannel();
-            channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-            channel.basicPublish("", QUEUE_NAME, null, link.getOriginalUrl().getBytes());
+            channel.queueDeclare(queueName, false, false, false, null);
+            channel.basicPublish("", queueName, null, link.getOriginalUrl().getBytes());
         } catch (IOException | TimeoutException e) {
             logger.error("Unable to save in cache", e);
         } finally {
