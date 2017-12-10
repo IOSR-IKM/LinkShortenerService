@@ -51,6 +51,6 @@ public class LinkController {
             public void run() {
                 repository.delete(link);
             }
-        }, 10 * 60 * 1000);
+        }, 10L * 60 * 1000);
     }
 }
