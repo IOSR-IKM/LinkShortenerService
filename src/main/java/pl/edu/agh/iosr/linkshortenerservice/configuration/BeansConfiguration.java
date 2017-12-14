@@ -12,11 +12,17 @@ public class BeansConfiguration {
 
     @Value("${rabbit.address}")
     private String rabbitAddress;
+    @Value("${rabbit.username}")
+    private String rabbitUsername;
+    @Value("${rabbit.password}")
+    private String rabbitPassword;
 
     @Bean
     public ConnectionFactory connectionFactory() {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(rabbitAddress);
+        factory.setUsername(rabbitUsername);
+        factory.setPassword(rabbitPassword);
         return factory;
     }
 
