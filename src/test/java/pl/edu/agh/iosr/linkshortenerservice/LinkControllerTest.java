@@ -13,9 +13,13 @@ import pl.edu.agh.iosr.linkshortenerservice.messaging.MessageSender;
 import pl.edu.agh.iosr.linkshortenerservice.model.Link;
 import pl.edu.agh.iosr.linkshortenerservice.repository.LinkRepository;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -62,16 +66,16 @@ public class LinkControllerTest {
     }
 
     @Test
-    public void shouldRedirectToOriginalUrlByHash() {
+    public void shouldRedirectToOriginalUrlByHash() throws URISyntaxException {
         // GIVEN
         Link link = new Link(null, ORIGINAL_URL, SHORTCUT);
         when(repository.findOneByShortcut(SHORTCUT)).thenReturn(Optional.of(link));
 
         // WHEN
-        ResponseEntity<String> response = controller.redirectByShortcut(SHORTCUT);
+        ResponseEntity<Object> response = controller.redirectByShortcut(SHORTCUT);
 
         // THEN
-        assertEquals(ORIGINAL_URL, response.getBody());
-        assertEquals(HttpStatus.TEMPORARY_REDIRECT, response.getStatusCode());
+        assertEquals(HttpStatus.SEE_OTHER, response.getStatusCode());
+        assertEquals(ORIGINAL_URL, response.getHeaders().getLocation().toString());
     }
 }
