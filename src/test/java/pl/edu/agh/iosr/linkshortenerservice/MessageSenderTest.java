@@ -43,7 +43,7 @@ public class MessageSenderTest {
 
         // THEN
         verify(channel).queueDeclare(QUEUE_NAME, false, false, false, null);
-        verify(channel).basicPublish("", QUEUE_NAME, null, "original".getBytes());
+        verify(channel).basicPublish("", QUEUE_NAME, null, "short,original".getBytes());
         verify(channel).close();
         verify(connection).close();
     }

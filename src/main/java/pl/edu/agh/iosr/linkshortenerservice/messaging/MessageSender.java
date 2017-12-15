@@ -28,7 +28,8 @@ public class MessageSender {
             connection = connectionFactory.newConnection();
             channel = connection.createChannel();
             channel.queueDeclare(queueName, false, false, false, null);
-            channel.basicPublish("", queueName, null, link.getOriginalUrl().getBytes());
+            String message = link.getShortcut() + "," + link.getOriginalUrl();
+            channel.basicPublish("", queueName, null, message.getBytes());
         } catch (IOException | TimeoutException e) {
             logger.error("Unable to save in cache", e);
         } finally {
