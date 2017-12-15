@@ -24,6 +24,7 @@ public class LinkController {
     private final MessageSender sender;
 
     @GetMapping("/{shortcut}")
+    @CrossOrigin(origins = "*")
     public ResponseEntity<Object> redirectByShortcut(@PathVariable String shortcut) throws URISyntaxException {
         Link link = repository.findOneByShortcut(shortcut).orElseThrow(() -> new RuntimeException("Could not find link"));
 
@@ -34,7 +35,8 @@ public class LinkController {
     }
 
     @PostMapping
-    public ResponseEntity<String> addNewShortcut(@RequestBody String originalUrl, @RequestParam boolean isPersistent) {
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<Link> addNewShortcut(@RequestBody String originalUrl, @RequestParam boolean isPersistent) {
         String shortcut = randomStringGenerator.generate(7);
 
         Link link = new Link(null, originalUrl, shortcut);
@@ -46,8 +48,7 @@ public class LinkController {
         if (!isPersistent) {
             scheduleRemovalTask(link);
         }
-
-        return new ResponseEntity<>(shortcut, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(link);
     }
 
     private void scheduleRemovalTask(Link link) {

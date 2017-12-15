@@ -52,14 +52,14 @@ public class LinkControllerTest {
         ArgumentCaptor<Link> captor = ArgumentCaptor.forClass(Link.class);
 
         // WHEN
-        ResponseEntity<String> response = controller.addNewShortcut(ORIGINAL_URL, true);
+        ResponseEntity<Link> response = controller.addNewShortcut(ORIGINAL_URL, true);
 
         // THEN
         verify(repository).save(captor.capture());
         Link link = captor.getValue();
         assertEquals(SHORTCUT_LENGTH, link.getShortcut().length());
         assertEquals(ORIGINAL_URL, link.getOriginalUrl());
-        assertEquals(link.getShortcut(), response.getBody());
+        assertEquals(link, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         verify(sender).sendCacheNotification(captor.capture());
         assertEquals(link, captor.getValue());
