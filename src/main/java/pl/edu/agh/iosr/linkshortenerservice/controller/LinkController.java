@@ -15,7 +15,7 @@ import java.net.URISyntaxException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-@RestController
+@RestController("/lss")
 @RequiredArgsConstructor
 public class LinkController {
 
