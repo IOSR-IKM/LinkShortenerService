@@ -12,14 +12,12 @@ import pl.edu.agh.iosr.linkshortenerservice.repository.LinkRepository;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/lss")
 @RequiredArgsConstructor
 public class LinkController {
-
     private final LinkRepository repository;
     private final RandomStringGenerator randomStringGenerator;
     private final MessageSender sender;
@@ -27,9 +25,13 @@ public class LinkController {
     @GetMapping("/{shortcut}")
     @CrossOrigin(origins = "*")
     public ResponseEntity<Object> redirectByShortcut(@PathVariable String shortcut) throws URISyntaxException {
-        Link link = repository.findOneByShortcut(shortcut).orElseThrow(() -> new RuntimeException("Could not find link"));
+        Optional<Link> link = repository.findLinkByShortcut(shortcut);
 
-        URI uri = new URI(link.getOriginalUrl());
+        if (!link.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        URI uri = new URI(link.get().getOriginalUrl());
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setLocation(uri);
         return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
@@ -42,23 +44,13 @@ public class LinkController {
 
         Link link = new Link(null, originalUrl, shortcut);
 
-        repository.save(link);
+        repository.saveLink(link);
 
         sender.sendCacheNotification(link);
 
         if (!isPersistent) {
-            scheduleRemovalTask(link);
+            repository.scheduleRemovalTask(link);
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(link);
-    }
-
-    private void scheduleRemovalTask(Link link) {
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                repository.delete(link);
-            }
-        }, 10L * 60 * 1000);
     }
 }

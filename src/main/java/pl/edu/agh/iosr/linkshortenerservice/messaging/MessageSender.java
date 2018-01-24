@@ -11,6 +11,10 @@ import org.springframework.stereotype.Component;
 import pl.edu.agh.iosr.linkshortenerservice.model.Link;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeoutException;
 
 @Component
@@ -18,10 +22,20 @@ import java.util.concurrent.TimeoutException;
 public class MessageSender {
     private static final Logger logger = LoggerFactory.getLogger(MessageSender.class);
     private final ConnectionFactory connectionFactory;
+    private final List<Link> cache = new ArrayList<>();
     @Value("${queue.name}")
     private String queueName = "cache_notify";
 
     public void sendCacheNotification(Link link) {
+        if (sendLinkToQueue(link)) {
+            scheduleCachePrune();
+        } else {
+            logger.error("Unable to send to queue, caching locally");
+            cache.add(link);
+        }
+    }
+
+    private boolean sendLinkToQueue(Link link) {
         Connection connection = null;
         Channel channel = null;
         try {
@@ -31,7 +45,7 @@ public class MessageSender {
             String message = link.getShortcut() + "," + link.getOriginalUrl();
             channel.basicPublish("", queueName, null, message.getBytes());
         } catch (IOException | TimeoutException e) {
-            logger.error("Unable to save in cache", e);
+            return false;
         } finally {
             if (channel != null) {
                 closeChannel(channel);
@@ -40,6 +54,17 @@ public class MessageSender {
                 closeConnection(connection);
             }
         }
+        return true;
+    }
+
+    private void scheduleCachePrune() {
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                cache.removeIf(link -> sendLinkToQueue(link));
+            }
+        }, 10L * 1000);
     }
 
     private void closeChannel(Channel channel) {
